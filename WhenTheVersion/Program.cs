@@ -9,7 +9,7 @@ namespace WhatTheVersion {
         const string DayPlaceholder      = "{DD}";
         const string MonthPlaceholder    = "{MM}";
         const string YearPlaceholder     = "{YYYY}";
-        const string SVNPlaceholder      = "{WCREV}";
+        const string SVNPlaceholder      = "{SVN}";
         const string SubWCrevPlaceholder = "$WCREV$";
 
 
@@ -104,14 +104,20 @@ namespace WhatTheVersion {
                 try {
                     File.WriteAllText(tempFilename, SubWCrevPlaceholder);
 
+                    // make sure our 
+                    string solutionDir = args[3].StartsWith("\"")
+                        ? args[3] : "\"" + args[3] + "\"";
+                    
                     // call SubWCrev.exe on our temporary file
                     ProcessStartInfo subWCrevProcessInfo = new ProcessStartInfo(
                         args[2],
-                        args[3] + " " + tempFilename + " " + tempFilename)
-                        { CreateNoWindow = true };
+                        args[3] + " " + tempFilename + " " + tempFilename) { CreateNoWindow = true };
 
                     Process subWCrevProcessCall = Process.Start(subWCrevProcessInfo);
                     subWCrevProcessCall.WaitForExit();
+
+                    //TODO: Check 'subWCrevProcessCall.ExitCode' - if 0 then proceed..
+
 
                     // read the result back in
                     string tempFilenameContents = File.ReadAllText(tempFilename);
@@ -121,10 +127,11 @@ namespace WhatTheVersion {
                         svnRevisionNumber = short.Parse(tempFilenameContents);
                     else
                         svnRevisionNumber = short.Parse(
-                             tempFilenameContents.Substring(
-                                 tempFilenameContents.Length - 4,
-                                 4)
-                             );     // revision is too big for Int16, so just take the last four digits
+                                tempFilenameContents.Substring(
+                                    tempFilenameContents.Length - 4,
+                                    4)
+                                );     // revision is too big for Int16, so just take the last four digits
+
 
                 } catch (Exception ex) {
                     throw new ArgumentNullException("Problem running SubWCrev.exe", ex);
@@ -150,8 +157,8 @@ namespace WhatTheVersion {
             ConsoleColor originalColor = Console.ForegroundColor;
 
             Console.WriteLine("");
-            Console.WriteLine("  WTV (When The Version) Date-based version numbering for .Net projects");
-            Console.WriteLine("  Andrew Freemantle - www.fatlemon.co.uk");
+            Console.WriteLine("  WTV (When The Version) Automatic date-based version numbering for .Net projects");
+            Console.WriteLine("  Andrew Freemantle - www.fatlemon.co.uk/wtv");
             Console.WriteLine("");
 
             Console.ForegroundColor = ConsoleColor.Red;
@@ -161,10 +168,10 @@ namespace WhatTheVersion {
             Console.WriteLine("");
             Console.WriteLine("  Usage: WTV  \"file-in\"  \"file-out\"  [\"path to SubWCrev.exe\"  \"SVN working-copy-path\"]");
             Console.WriteLine("   \"file-in\"  can contain the following placeholders:");
-            Console.WriteLine("     {DD}     - Day");
-            Console.WriteLine("     {MM}     - Month");
-            Console.WriteLine("     {YYYY}   - Year");
-            Console.WriteLine("     {WCREV}  - SubVersion revision (must specify the path to SubWCrev.exe and working copy path)");
+            Console.WriteLine("     {DD}    - Day");
+            Console.WriteLine("     {MM}    - Month");
+            Console.WriteLine("     {YYYY}  - Year");
+            Console.WriteLine("     {SVN}   - SubVersion revision (must specify the path to SubWCrev.exe and working copy path)");
             Console.WriteLine("");
             Console.WriteLine("  Example Pre-Build command: (remove the line breaks)");
             Console.WriteLine("    \"C:\\Path\\To\\WTV.exe\"");

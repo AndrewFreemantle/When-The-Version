@@ -6,7 +6,7 @@ using System.Runtime.InteropServices;
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
 [assembly: AssemblyTitle("WTV: When The Version")]
-[assembly: AssemblyDescription("Date-based version numbering ('2011.11.05.xyz') for .Net projects designed to run as a pre-build task")]
+[assembly: AssemblyDescription("Automatic date-based version numbering ('2011.11.5.xyz') for .Net projects designed to run as a pre-build task")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("Andrew Freemantle (www.fatlemon.co.uk)")]
 [assembly: AssemblyProduct("WTV: When The Version")]
@@ -32,5 +32,5 @@ using System.Runtime.InteropServices;
 // You can specify all the values or you can default the Build and Revision Numbers 
 // by using the '*' as shown below:
 // [assembly: AssemblyVersion("1.0.*")]
-[assembly: AssemblyVersion("1.0.0.0")]
-[assembly: AssemblyFileVersion("1.0.0.0")]
+[assembly: AssemblyVersion("2012.1.29.0")]
+[assembly: AssemblyFileVersion("2012.1.29.0")]
