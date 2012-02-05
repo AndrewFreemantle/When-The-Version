@@ -46,9 +46,8 @@ namespace WhatTheVersion {
             // do the replacements
             try {
                 outputFileContents = DoReplacements(inputFileContents, args);
-            } catch (Exception ex) {
-                Console.WriteLine(ex.ToString());
-                return PrintUsage(ExitCode.WTV_Problem_Running_SubWCrev);
+            } catch (Exception) {
+                return PrintUsage(ExitCode.WTV_Problem_Doing_Replacements);
             }
             
 
@@ -71,7 +70,7 @@ namespace WhatTheVersion {
         /// Replaces the Date and SVN placeholders with the actual values
         /// </summary>
         private static string DoReplacements(string inputFileContents, string[] args) {
-            DateTime now = DateTime.Now;
+            DateTime now = DateTime.UtcNow;
 
             return inputFileContents
                 .Replace(DayPlaceholder, now.Day.ToString())
@@ -85,66 +84,159 @@ namespace WhatTheVersion {
         /// <summary>
         /// Gets the highest SVN Revision Number for the Project Path passed in
         /// </summary>
+        /// <remarks>
+        /// Always returns a value, but writes errors to the Console (returning 0)
+        /// </remarks>
         private static short GetSVNRevisionNumber(string[] args) {
             short svnRevisionNumber = 0;
 
             if (args.Length == 4) {
-                
+
+
                 // is the given path to SubWCrev.exe OK?
-                if (!File.Exists(args[2]))
-                    throw new ArgumentException("SubWCrev.exe not found at: " + args[2]);
-
-                // is the Project path OK?
-                if (!Directory.Exists(args[3]))
-                    throw new ArgumentException("Project path looks invalid: " + args[3]);
-
-
-                // create a temporary file within the project root to call SubWCrev.exe on
-                string tempFilename = Path.GetTempFileName();
-                try {
-                    File.WriteAllText(tempFilename, SubWCrevPlaceholder);
-
-                    // make sure our 
-                    string solutionDir = args[3].StartsWith("\"")
-                        ? args[3] : "\"" + args[3] + "\"";
-                    
-                    // call SubWCrev.exe on our temporary file
-                    ProcessStartInfo subWCrevProcessInfo = new ProcessStartInfo(
-                        args[2],
-                        args[3] + " " + tempFilename + " " + tempFilename) { CreateNoWindow = true };
-
-                    Process subWCrevProcessCall = Process.Start(subWCrevProcessInfo);
-                    subWCrevProcessCall.WaitForExit();
-
-                    //TODO: Check 'subWCrevProcessCall.ExitCode' - if 0 then proceed..
-
-
-                    // read the result back in
-                    string tempFilenameContents = File.ReadAllText(tempFilename);
-
-                    // massage it to fit into a short / Int16
-                    if (long.Parse(tempFilenameContents) <= short.MaxValue)
-                        svnRevisionNumber = short.Parse(tempFilenameContents);
-                    else
-                        svnRevisionNumber = short.Parse(
-                                tempFilenameContents.Substring(
-                                    tempFilenameContents.Length - 4,
-                                    4)
-                                );     // revision is too big for Int16, so just take the last four digits
-
-
-                } catch (Exception ex) {
-                    throw new ArgumentNullException("Problem running SubWCrev.exe", ex);
-                } finally {
-                    // tidy up
-                    try {
-                        File.Delete(tempFilename);
-                    } catch (Exception) { }
-
+                if (!File.Exists(args[2])) {
+                    WriteErrorMessageToConsole("SubWCrev.exe not found at: " + args[2]);
+                    return svnRevisionNumber;
                 }
+
+
+                // do the call to SubWCRev.exe..
+                try {	        
+		            svnRevisionNumber = CallSubWCrev(args);
+	            } catch (Exception ex) {
+		            WriteErrorMessageToConsole(ex.Message);
+	            }
+
+
             }
 
             return svnRevisionNumber;
+
+        }
+
+
+
+        /// <summary>
+        /// Calls SubWCRev.exe to get the Subversion Working Copy Revision number
+        /// </summary>
+        /// <returns></returns>
+        private static short CallSubWCrev(string[] args) {
+            short svnRevisionNumber = 0;
+
+            // create a temporary file call SubWCrev.exe on
+            string tempFilename = Path.GetTempFileName();
+
+            try {
+
+                File.WriteAllText(tempFilename, SubWCrevPlaceholder);
+
+
+                // make sure working copy path is enclosed in quotes
+                //  in case the path contains spaces..
+                string workingCopyPath = args[3].StartsWith("\"")
+                    ? args[3] : "\"" + args[3] + "\"";
+
+                // call SubWCrev.exe on our temporary file
+                ProcessStartInfo subWCrevProcessInfo = new ProcessStartInfo(
+                    args[2],
+                    workingCopyPath + " \"" + tempFilename + "\" \"" + tempFilename + "\"") { CreateNoWindow = true };
+
+                Process subWCrevProcessCall = Process.Start(subWCrevProcessInfo);
+                subWCrevProcessCall.WaitForExit();
+
+
+
+                // did it work?
+                //  SubWCRev.exe error codes:
+                //  http://code.google.com/p/tortoisesvn/source/browse/trunk/src/SubWCRev/SubWCRev.cpp
+                switch (subWCrevProcessCall.ExitCode) {
+                    case 0:
+                        // Call completed OK
+
+                        // read the result back in
+                        string tempFilenameContents = File.ReadAllText(tempFilename);
+
+                        // massage it to fit into a short / Int16
+                        if (long.Parse(tempFilenameContents) <= short.MaxValue)
+                            svnRevisionNumber = short.Parse(tempFilenameContents);
+                        else
+                            svnRevisionNumber = short.Parse(
+                                    tempFilenameContents.Substring(
+                                        tempFilenameContents.Length - 4,
+                                        4)
+                                    );     // revision is too big for Int16, so just take the last four digits
+
+                        break;
+
+                    case 1:
+                        throw new ArgumentException("SubWCRev.exe - Syntax error");
+
+                    case 2:
+                        throw new ArgumentException("SubWCRev.exe - File/folder not found");
+
+                    case 3:
+                        throw new ArgumentException("SubWCRev.exe - File open error");
+
+                    case 4:
+                        throw new ArgumentException("SubWCRev.exe - Memory allocation error");
+
+                    case 5:
+                        throw new ArgumentException("SubWCRev.exe - File read/write/size error");
+
+                    case 6:
+                        throw new ArgumentException("SubWCRev.exe - SVN error (is the working copy path correct?)");
+
+                    case 7:
+                        throw new ArgumentException("SubWCRev.exe - Local mods found (-n)");
+
+                    case 8:
+                        throw new ArgumentException("SubWCRev.exe - Mixed rev WC found (-m)");
+
+                    case 9:
+                        throw new ArgumentException("SubWCRev.exe - Output file already exists (-d)");
+
+                    case 10:
+                        throw new ArgumentException("SubWCRev.exe - the path is not a working copy or part of one");
+
+                    default:
+                        throw new ArgumentException("SubWCRev.exe - unknown exit code status (sorry!)");
+
+	            }
+
+
+            } catch (ArgumentException) {
+                throw;
+            } catch (Exception ex) {
+                throw new ArgumentException("Problem running SubWCrev.exe", ex);
+            } finally {
+                // tidy up
+                try {
+                    File.Delete(tempFilename);
+                } catch (Exception) { }
+
+            }
+
+            return svnRevisionNumber;
+        }
+
+
+
+        /// <summary>
+        /// Writes an error message to the Console
+        /// </summary>
+        /// <param name="message"></param>
+        private static void WriteErrorMessageToConsole(string message) {
+            ConsoleColor originalColor = Console.ForegroundColor;
+
+            Console.WriteLine("");
+            Console.WriteLine("  WTV (When The Version) Automatic date-based version numbering for .Net projects");
+            Console.WriteLine("  Andrew Freemantle - www.fatlemon.co.uk/wtv");
+            Console.WriteLine("");
+
+            Console.ForegroundColor = ConsoleColor.Red;
+            Console.WriteLine("    Error: " + message);
+
+            Console.ForegroundColor = originalColor;
         }
 
 
@@ -196,7 +288,7 @@ namespace WhatTheVersion {
             WTV_Wrong_No_Of_Arguments = 1,
             WTV_Problem_Reading_Input_File = 2,
             WTV_Problem_Writing_To_Output_File = 3,
-            WTV_Problem_Running_SubWCrev = 4,
+            WTV_Problem_Doing_Replacements = 4,
             WTV_Problem_Getting_SVN_Revision_Number = 5
 
         }
