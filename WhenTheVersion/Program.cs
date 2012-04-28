@@ -92,13 +92,20 @@ namespace WhatTheVersion {
 
             if (args.Length == 4) {
 
-
                 // is the given path to SubWCrev.exe OK?
+                if (!File.Exists(args[2])) {
+                    // hmm, file doesn't exist, is this an environment variable containing the path instead?
+                    try {	        
+		                args[2] = Environment.GetEnvironmentVariable(args[2]);
+	                }
+	                catch (Exception) {	/* exception doesn't matter */ }
+                }
+
+                // try again in case we've found an environment variable..
                 if (!File.Exists(args[2])) {
                     WriteErrorMessageToConsole("SubWCrev.exe not found at: " + args[2]);
                     return svnRevisionNumber;
                 }
-
 
                 // do the call to SubWCRev.exe..
                 try {	        
@@ -148,7 +155,7 @@ namespace WhatTheVersion {
 
                 // did it work?
                 //  SubWCRev.exe error codes:
-                //  http://code.google.com/p/tortoisesvn/source/browse/trunk/src/SubWCRev/SubWCRev.cpp
+                //  source: http://code.google.com/p/tortoisesvn/source/browse/trunk/src/SubWCRev/SubWCRev.cpp
                 switch (subWCrevProcessCall.ExitCode) {
                     case 0:
                         // Call completed OK
