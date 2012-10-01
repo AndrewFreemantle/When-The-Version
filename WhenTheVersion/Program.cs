@@ -87,8 +87,8 @@ namespace WhatTheVersion {
         /// <remarks>
         /// Always returns a value, but writes errors to the Console (returning 0)
         /// </remarks>
-        private static short GetSVNRevisionNumber(string[] args) {
-            short svnRevisionNumber = 0;
+        private static ushort GetSVNRevisionNumber(string[] args) {
+            ushort svnRevisionNumber = 0;
 
             if (args.Length == 4) {
 
@@ -127,8 +127,8 @@ namespace WhatTheVersion {
         /// Calls SubWCRev.exe to get the Subversion Working Copy Revision number
         /// </summary>
         /// <returns></returns>
-        private static short CallSubWCrev(string[] args) {
-            short svnRevisionNumber = 0;
+        private static ushort CallSubWCrev(string[] args) {
+            ushort svnRevisionNumber = 0;
 
             // create a temporary file call SubWCrev.exe on
             string tempFilename = Path.GetTempFileName();
@@ -163,15 +163,15 @@ namespace WhatTheVersion {
                         // read the result back in
                         string tempFilenameContents = File.ReadAllText(tempFilename);
 
-                        // massage it to fit into a short / Int16
-                        if (long.Parse(tempFilenameContents) <= short.MaxValue)
-                            svnRevisionNumber = short.Parse(tempFilenameContents);
+                        // massage it to fit into a ushort / UInt16
+                        if (long.Parse(tempFilenameContents) <= ushort.MaxValue)
+                            svnRevisionNumber = ushort.Parse(tempFilenameContents);
                         else
-                            svnRevisionNumber = short.Parse(
+                            svnRevisionNumber = ushort.Parse(
                                     tempFilenameContents.Substring(
                                         tempFilenameContents.Length - 4,
                                         4)
-                                    );     // revision is too big for Int16, so just take the last four digits
+                                    );     // revision is too big for UInt16, so just take the last four digits
 
                         break;
 
