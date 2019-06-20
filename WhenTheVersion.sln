@@ -1,7 +1,11 @@
 ﻿
-Microsoft Visual Studio Solution File, Format Version 11.00
-# Visual Studio 2010
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.29009.5
+MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WhenTheVersion", "WhenTheVersion\WhenTheVersion.csproj", "{2CACB06C-1F98-4938-A333-92EBA724CEF9}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WhenTheVersion.Tests", "WhenTheVersion.Tests\WhenTheVersion.Tests.csproj", "{B8012FC7-6098-416C-A5DA-AD266CA00030}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -19,8 +23,19 @@ Global
 		{2CACB06C-1F98-4938-A333-92EBA724CEF9}.Release|Any CPU.Build.0 = Release|Any CPU
 		{2CACB06C-1F98-4938-A333-92EBA724CEF9}.Release|x86.ActiveCfg = Release|x86
 		{2CACB06C-1F98-4938-A333-92EBA724CEF9}.Release|x86.Build.0 = Release|x86
+		{B8012FC7-6098-416C-A5DA-AD266CA00030}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B8012FC7-6098-416C-A5DA-AD266CA00030}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B8012FC7-6098-416C-A5DA-AD266CA00030}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{B8012FC7-6098-416C-A5DA-AD266CA00030}.Debug|x86.Build.0 = Debug|Any CPU
+		{B8012FC7-6098-416C-A5DA-AD266CA00030}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B8012FC7-6098-416C-A5DA-AD266CA00030}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B8012FC7-6098-416C-A5DA-AD266CA00030}.Release|x86.ActiveCfg = Release|Any CPU
+		{B8012FC7-6098-416C-A5DA-AD266CA00030}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {8DC6B4A4-B8E9-43BD-949D-9F1201181102}
 	EndGlobalSection
 EndGlobal
